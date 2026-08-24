@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#6d5dfc">
+<link rel="manifest" href="manifest.json">
+<title>Sistema — Check-in Inteligente</title>
+
+<style>
+:root{
+--bg:#0f1020;--card:#181a31;--card2:#222543;
+--text:#f7f7fb;--muted:#aeb3cc;--accent:#8b7cff;
+--ok:#5ee0b6
+}
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:system-ui,Arial,sans-serif;
+background:radial-gradient(circle at 15% 5%,#332a70 0,transparent 28%),var(--bg);
+color:var(--text);
+min-height:100vh
+}
+
+.app{
+max-width:760px;
+margin:auto;
+padding:18px 16px 90px
+}
+
+.hero{
+background:linear-gradient(135deg,#7566ff,#aa5ee9,#ef78ac);
+border-radius:30px;
+padding:24px
+}
+
+.hero h1{
+font-size:30px;
+margin:0 0 8px
+}
+
+.section{margin-top:18px}
+
+.card{
+background:#181a31;
+border-radius:24px;
+padding:16px;
+border:1px solid #ffffff10
+}
+
+.energy{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px
+}
+
+button{
+border:0;
+border-radius:18px;
+padding:14px;
+cursor:pointer
+}
+
+.energy button,.choice{
+background:#222543;
+color:white
+}
+
+.energy button.active,.choice.active{
+background:#7566ff
+}
+
+.label{
+font-size:11px;
+display:block;
+color:#ccc;
+margin-top:4px
+}
+
+.choices{
+display:flex;
+flex-wrap:wrap;
+gap:8px
+}
+
+textarea{
+width:100%;
+min-height:90px;
+background:#101226;
+color:white;
+border:1px solid #ffffff20;
+border-radius:18px;
+padding:14px;
+resize:vertical
+}
+
+.row{
+display:flex;
+gap:10px;
+margin-top:12px
+}
+
+.primary{
+background:linear-gradient(135deg,#8b7cff,#c064e8);
+color:white;
+font-weight:bold;
+flex:1
+}
+
+.mic{
+width:62px;
+height:62px;
+border-radius:50%;
+background:linear-gradient(135deg,#ff719f,#ff9f76);
+color:white;
+font-size:24px
+}
+
+.mic.recording{
+outline:5px solid #ff719f33
+}
+
+.status{
+font-size:13px;
+color:#aeb3cc;
+margin-top:8px
+}
+
+.hidden{display:none}
+
+.insight{
+border-left:4px solid #5ee0b6;
+padding-left:12px;
+line-height:1.45;
+white-space:pre-wrap
+}
+
+.transcript{
+font-size:13px;
+color:#c8cbe0;
+margin-top:12px;
+background:#101226;
+padding:10px;
+border-radius:12px
+}
+
+.entry{
+background:#121428;
+border-radius:16px;
+padding:12px;
+margin-top:8px
+}
+
+.time{
+font-size:11px;
+color:#aeb3cc
+}
+</style>
+</head>
+
+<body>
+
+<main class="app">
+
+<section class="hero">
+<h1>Como está sua energia agora?</h1>
+<p>Escolha rápido. O sistema adapta a resposta à sua energia.</p>
+</section>
+
+<section class="section card">
+
+<h2>Energia atual</h2>
+
+<div class="energy">
+
+<button data-energy="baixa">
+🔋 <strong>Baixa</strong>
+<span class="label">quero pouco esforço</span>
+</button>
+
+<button data-energy="media">
+⚡ <strong>Média</strong>
+<span class="label">consigo responder</span>
+</button>
+
+<button data-energy="boa">
+✨ <strong>Boa</strong>
+<span class="label">pode aprofundar</span>
+</button>
+
+</div>
+</section>
+
+<section class="section card">
+
+<h2>O que está acontecendo?</h2>
+
+<div class="choices">
+
+<button class="choice">Estou evitando algo</button>
+
+<button class="choice">
+Quero tomar uma decisão
+</button>
+
+<button class="choice">Estou cansada</button>
+
+<button class="choice">
+Quero registrar algo
+</button>
+
+<button class="choice">
+Preciso me organizar
+</button>
+
+<button class="choice">
+Outra coisa
+</button>
+
+</div>
+
+<br>
+
+<textarea
+id="note"
+placeholder="Escreva ou use o microfone e fale do seu jeito.">
+</textarea>
+
+<div class="row">
+
+<button class="mic" id="micBtn">
+🎙️
+</button>
+
+<button class="primary" id="saveBtn">
+Registrar texto
+</button>
+
+</div>
+
+<div class="status" id="status">
+Você também pode falar. Ao parar a gravação, a IA fará a transcrição e responderá.
+</div>
+
+</section>
+
+<section
+class="section card hidden"
+id="resultCard">
+
+<h2>Resposta do sistema</h2>
+
+<div
+class="insight"
+id="insight">
+</div>
+
+<div
+class="transcript hidden"
+id="transcript">
+</div>
+
+</section>
+
+<section class="section card">
+
+<h2>Registros recentes</h2>
+
+<div id="timeline"></div>
+
+</section>
+
+</main>
+
+<script>
+
+const API_URL =
+"https://sistema-ia.natalia-oliferreira.workers.dev";
+
+const state={
+energy:null,
+selected:null,
+mediaRecorder:null,
+chunks:[]
+};
+
+document
+.querySelectorAll("[data-energy]")
+.forEach(b=>b.onclick=()=>{
+
+document
+.querySelectorAll("[data-energy]")
+.forEach(x=>x.classList.remove("active"));
+
+b.classList.add("active");
+
+state.energy=b.dataset.energy;
+
+});
+
+document
+.querySelectorAll(".choice")
+.forEach(b=>b.onclick=()=>{
+
+document
+.querySelectorAll(".choice")
+.forEach(x=>x.classList.remove("active"));
+
+b.classList.add("active");
+
+state.selected=
+b.textContent.trim();
+
+});
+
+function showResult(
+text,
+transcription=""
+){
+
+const card=
+document.getElementById("resultCard");
+
+const insight=
+document.getElementById("insight");
+
+const tr=
+document.getElementById("transcript");
+
+card.classList.remove("hidden");
+
+insight.textContent=text;
+
+if(transcription){
+
+tr.textContent=
+"Transcrição: "+transcription;
+
+tr.classList.remove("hidden");
+
+}else{
+
+tr.classList.add("hidden");
+
+}
+
+setTimeout(()=>{
+
+card.scrollIntoView({
+behavior:"smooth",
+block:"center"
+});
+
+},100);
+
+}
+
+function saveEntry(text){
+
+const list=
+JSON.parse(
+localStorage.getItem("entries")||"[]"
+);
+
+list.unshift({
+
+text:text,
+
+energy:
+state.energy||
+"não informada",
+
+type:
+state.selected||
+"registro livre",
+
+time:
+new Date()
+.toLocaleString("pt-BR")
+
+});
+
+localStorage.setItem(
+"entries",
+JSON.stringify(
+list.slice(0,30)
+)
+);
+
+renderTimeline();
+
+}
+
+function renderTimeline(){
+
+const root=
+document.getElementById("timeline");
+
+const list=
+JSON.parse(
+localStorage.getItem("entries")||"[]"
+).slice(0,6);
+
+root.innerHTML=
+list.length
+?
+list.map(e=>`
+
+<div class="entry">
+
+<div class="time">
+${e.time} · energia ${e.energy}
+</div>
+
+<strong>
+${e.type}
+</strong>
+
+<div>
+${e.text}
+</div>
+
+</div>
+
+`).join("")
+
+:
+
+"Nenhum registro ainda.";
+
+}
+
+document
+.getElementById("saveBtn")
+.onclick=async()=>{
+
+const text=
+document
+.getElementById("note")
+.value
+.trim();
+
+const btn=
+document
+.getElementById("saveBtn");
+
+if(!state.energy){
+
+alert(
+"Escolha sua energia primeiro."
+);
+
+return;
+
+}
+
+if(!text && !state.selected){
+
+alert(
+"Escreva algo ou escolha uma opção."
+);
+
+return;
+
+}
+
+const payload=
+text||state.selected;
+
+saveEntry(payload);
+
+btn.textContent=
+"Pensando…";
+
+btn.disabled=true;
+
+showResult(
+"Enviando para a IA…"
+);
+
+try{
+
+const r=
+await fetch(
+API_URL,
+{
+
+method:"POST",
+
+headers:{
+"Content-Type":
+"application/json"
+},
+
+body:
+JSON.stringify({
+
+energy:
+state.energy,
+
+context:
+state.selected||"",
+
+text:
+payload
+
+})
+
+});
+
+const d=
+await r.json();
+
+if(!r.ok || !d.reply){
+
+throw new Error(
+d.error||"Erro"
+);
+
+}
+
+showResult(
+d.reply
+);
+
+btn.textContent=
+"✓ Registrado!";
+
+}catch(e){
+
+showResult(
+"Não consegui falar com a IA agora. Seu registro foi salvo."
+);
+
+btn.textContent=
+"✓ Salvo";
+
+}
+
+setTimeout(()=>{
+
+btn.textContent=
+"Registrar texto";
+
+btn.disabled=false;
+
+},2200);
+
+};
+
+document
+.getElementById("micBtn")
+.onclick=async()=>{
+
+const btn=
+document.getElementById("micBtn");
+
+const status=
+document.getElementById("status");
+
+if(!state.energy){
+
+alert(
+"Escolha sua energia primeiro."
+);
+
+return;
+
+}
+
+if(
+state.mediaRecorder &&
+state.mediaRecorder.state==="recording"
+){
+
+state.mediaRecorder.stop();
+
+return;
+
+}
+
+try{
+
+const stream=
+await navigator
+.mediaDevices
+.getUserMedia({
+audio:true
+});
+
+state.chunks=[];
+
+const options=
+MediaRecorder.isTypeSupported(
+"audio/webm;codecs=opus"
+)
+?
+{
+mimeType:
+"audio/webm;codecs=opus"
+}
+:
+{};
+
+state.mediaRecorder=
+new MediaRecorder(
+stream,
+options
+);
+
+state.mediaRecorder
+.ondataavailable=e=>{
+
+if(e.data.size){
+
+state.chunks.push(
+e.data
+);
+
+}
+
+};
+
+state.mediaRecorder
+.onstop=async()=>{
+
+btn.classList
+.remove("recording");
+
+btn.textContent="🎙️";
+
+stream
+.getTracks()
+.forEach(t=>t.stop());
+
+const mime=
+state.mediaRecorder.mimeType||
+"audio/webm";
+
+const blob=
+new Blob(
+state.chunks,
+{type:mime}
+);
+
+status.textContent=
+"Enviando áudio para transcrição…";
+
+showResult(
+"Ouvindo o que você falou…"
+);
+
+try{
+
+const form=
+new FormData();
+
+form.append(
+"audio",
+blob,
+"audio.webm"
+);
+
+form.append(
+"energy",
+state.energy
+);
+
+form.append(
+"context",
+state.selected||
+"registro por voz"
+);
+
+const r=
+await fetch(
+API_URL,
+{
+method:"POST",
+body:form
+}
+);
+
+const d=
+await r.json();
+
+if(!r.ok || !d.reply){
+
+throw new Error(
+d.error||"Erro"
+);
+
+}
+
+saveEntry(
+d.transcription||
+"Áudio transcrito"
+);
+
+showResult(
+d.reply,
+d.transcription||""
+);
+
+status.textContent=
+"✓ Áudio transcrito e analisado pela IA.";
+
+}catch(e){
+
+showResult(
+"Não consegui analisar o áudio agora. Tente novamente."
+);
+
+status.textContent=
+"Não foi possível enviar ou transcrever o áudio.";
+
+}
+
+};
+
+state.mediaRecorder.start();
+
+btn.classList
+.add("recording");
+
+btn.textContent="⏹️";
+
+status.textContent=
+"🎙️ Gravando… toque novamente para parar.";
+
+}catch(e){
+
+status.textContent=
+"Não consegui acessar o microfone. Verifique a permissão do navegador.";
+
+}
+
+};
+
+renderTimeline();
+
+</script>
+
+</body>
+  </html>
