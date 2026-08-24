@@ -1,0 +1,1407 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#edf6ff">
+<link rel="manifest" href="manifest.json">
+<title>Gabinete</title>
+
+<style>
+:root{
+ --bg:#f4f9ff;
+ --white:#fff;
+ --blue:#2477e8;
+ --blue2:#68baff;
+ --blue3:#dcecff;
+ --ink:#16243d;
+ --muted:#728198;
+ --line:#ddeaf8;
+ --green:#46b98a;
+ --shadow:0 10px 32px rgba(40,95,160,.10);
+}
+
+*{box-sizing:border-box}
+
+html,body{
+ margin:0;
+ height:100%;
+ font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;
+ background:var(--bg);
+ color:var(--ink);
+}
+
+body{overflow:hidden}
+
+.app{
+ height:100dvh;
+ max-width:760px;
+ margin:auto;
+ display:flex;
+ flex-direction:column;
+ background:
+ linear-gradient(180deg,#eaf5ff 0,#fafdff 19%,#f4f9ff 100%);
+}
+
+/* TOPO */
+
+.top{
+ padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+ background:rgba(255,255,255,.91);
+ backdrop-filter:blur(18px);
+ border-bottom:1px solid var(--line);
+ z-index:10;
+}
+
+.topline{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:10px;
+}
+
+.brand{
+ font-size:18px;
+ font-weight:850;
+}
+
+.subtitle{
+ font-size:11px;
+ color:var(--muted);
+ margin-top:1px;
+}
+
+.energy{
+ border:1px solid #bad7fa;
+ background:white;
+ color:#30649f;
+ border-radius:999px;
+ padding:8px 11px;
+ font-weight:750;
+}
+
+.energy-menu{
+ display:none;
+ gap:6px;
+ margin-top:9px;
+}
+
+.energy-menu.show{display:flex}
+
+.energy-menu button{
+ flex:1;
+ border:1px solid var(--line);
+ background:white;
+ border-radius:13px;
+ padding:9px;
+ color:var(--ink);
+}
+
+.energy-menu button.active{
+ background:#deedff;
+ border-color:#72acf3;
+ color:#155dae;
+}
+
+/* CONVERSA */
+
+.chat{
+ flex:1;
+ overflow:auto;
+ padding:15px 13px 155px;
+ scroll-behavior:smooth;
+}
+
+.day{
+ text-align:center;
+ font-size:11px;
+ color:#8b99ab;
+ margin:3px 0 15px;
+}
+
+.msg{
+ display:flex;
+ margin-bottom:12px;
+}
+
+.msg.user{
+ justify-content:flex-end;
+}
+
+.bubble{
+ max-width:87%;
+ padding:12px 14px;
+ border-radius:19px;
+ line-height:1.45;
+ white-space:pre-wrap;
+ box-shadow:0 3px 12px rgba(25,65,110,.05);
+}
+
+.user .bubble{
+ background:var(--blue3);
+ border-bottom-right-radius:6px;
+}
+
+.ai .bubble{
+ background:white;
+ border:1px solid #e4edf8;
+ border-bottom-left-radius:6px;
+}
+
+.meta{
+ font-size:10px;
+ color:#8190a4;
+ margin-top:6px;
+}
+
+.typing{
+ display:flex;
+ gap:5px;
+ align-items:center;
+ min-height:16px;
+}
+
+.typing i{
+ width:7px;
+ height:7px;
+ background:#69a7f2;
+ border-radius:50%;
+ animation:pulse .85s infinite alternate;
+}
+
+.typing i:nth-child(2){animation-delay:.16s}
+.typing i:nth-child(3){animation-delay:.32s}
+
+@keyframes pulse{
+ to{
+  transform:translateY(-5px);
+  opacity:.45;
+ }
+}
+
+/* RESPOSTAS RÁPIDAS */
+
+.quick{
+ display:flex;
+ flex-wrap:wrap;
+ gap:7px;
+ margin:5px 0 14px;
+}
+
+.quick button{
+ border:1px solid #bad6f7;
+ background:white;
+ color:#245f9f;
+ border-radius:999px;
+ padding:9px 12px;
+ font-weight:650;
+}
+
+/* MISSÃO */
+
+.mission{
+ background:linear-gradient(135deg,#e8f5ff,#f6fbff);
+ border:1px solid #add2fa;
+ border-radius:20px;
+ padding:14px;
+ margin:4px 0 15px;
+ box-shadow:var(--shadow);
+}
+
+.mission-title{
+ font-size:12px;
+ font-weight:800;
+ color:#2772c8;
+ margin-bottom:5px;
+}
+
+.mission-text{
+ font-size:15px;
+ line-height:1.4;
+}
+
+.mission-actions{
+ display:flex;
+ gap:7px;
+ margin-top:11px;
+}
+
+.mission-actions button{
+ border:0;
+ border-radius:14px;
+ padding:10px 12px;
+ font-weight:750;
+}
+
+.do{
+ background:var(--blue);
+ color:white;
+}
+
+.cant{
+ background:white;
+ border:1px solid var(--line)!important;
+ color:#52657d;
+}
+
+/* ÁUDIO */
+
+.composer-wrap{
+ position:absolute;
+ left:0;
+ right:0;
+ bottom:0;
+ max-width:760px;
+ margin:auto;
+ padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+ background:
+ linear-gradient(transparent,rgba(244,249,255,.98) 24%);
+}
+
+.recording{
+ display:none;
+ background:white;
+ border:1px solid var(--line);
+ box-shadow:var(--shadow);
+ border-radius:22px;
+ padding:11px 13px;
+ margin-bottom:8px;
+}
+
+.recording.show{display:block}
+
+.rec-head{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ font-size:12px;
+ color:#5d6e84;
+}
+
+.timer{
+ font-weight:850;
+ font-variant-numeric:tabular-nums;
+ color:#2465ad;
+}
+
+canvas{
+ width:100%;
+ height:48px;
+ display:block;
+ margin-top:4px;
+}
+
+.composer{
+ display:flex;
+ align-items:flex-end;
+ gap:8px;
+ background:white;
+ border:1px solid var(--line);
+ border-radius:24px;
+ padding:8px;
+ box-shadow:var(--shadow);
+}
+
+textarea{
+ flex:1;
+ resize:none;
+ border:0;
+ outline:0;
+ background:transparent;
+ min-height:44px;
+ max-height:110px;
+ padding:11px 8px;
+ font:inherit;
+ color:var(--ink);
+}
+
+.circle{
+ width:46px;
+ height:46px;
+ border:0;
+ border-radius:50%;
+ display:grid;
+ place-items:center;
+ font-size:20px;
+}
+
+.mic{
+ background:linear-gradient(135deg,var(--blue2),var(--blue));
+ color:white;
+}
+
+.mic.active{
+ background:#ff6971;
+}
+
+.send{
+ background:#e5f1ff;
+ color:#1767c0;
+}
+
+.hint{
+ text-align:center;
+ color:#8795a8;
+ font-size:10px;
+ margin-top:5px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header class="top">
+
+<div class="topline">
+
+<div>
+<div class="brand">Gabinete</div>
+<div class="subtitle">seu acompanhamento pessoal</div>
+</div>
+
+<button class="energy" id="energyBtn">
+⚡ Energia média
+</button>
+
+</div>
+
+<div class="energy-menu" id="energyMenu">
+
+<button data-energy="baixa">
+🔋 Baixa
+</button>
+
+<button data-energy="media">
+⚡ Média
+</button>
+
+<button data-energy="boa">
+✨ Boa
+</button>
+
+</div>
+
+</header>
+
+<main class="chat" id="chat">
+
+<div class="day">Hoje</div>
+
+</main>
+
+<div class="composer-wrap">
+
+<div class="recording" id="recording">
+
+<div class="rec-head">
+<span>🎙️ Estou ouvindo você</span>
+<span class="timer" id="timer">00:00</span>
+</div>
+
+<canvas id="wave"></canvas>
+
+</div>
+
+<div class="composer">
+
+<textarea
+id="text"
+rows="1"
+placeholder="Fale ou escreva do seu jeito…">
+</textarea>
+
+<button
+class="circle mic"
+id="micBtn">
+🎙️
+</button>
+
+<button
+class="circle send"
+id="sendBtn">
+➤
+</button>
+
+</div>
+
+<div class="hint" id="hint">
+Você não precisa organizar tudo antes de falar.
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const API=
+"https://sistema-ia.natalia-oliferreira.workers.dev";
+
+const S={
+ energy:localStorage.getItem("gabineteEnergy")||"media",
+ recorder:null,
+ chunks:[],
+ stream:null,
+ audio:null,
+ analyser:null,
+ animation:null,
+ seconds:0,
+ timer:null
+};
+
+const chat=document.getElementById("chat");
+const text=document.getElementById("text");
+const mic=document.getElementById("micBtn");
+const hint=document.getElementById("hint");
+const recording=document.getElementById("recording");
+const timer=document.getElementById("timer");
+const canvas=document.getElementById("wave");
+
+/* UTILIDADES */
+
+function escapeHTML(v){
+ return String(v).replace(
+  /[&<>"']/g,
+  x=>({
+   "&":"&amp;",
+   "<":"&lt;",
+   ">":"&gt;",
+   '"':"&quot;",
+   "'":"&#39;"
+  }[x])
+ );
+}
+
+function bottom(){
+ setTimeout(()=>{
+  chat.scrollTop=chat.scrollHeight;
+ },30);
+}
+
+function message(type,content,meta=""){
+
+ const el=document.createElement("div");
+
+ el.className="msg "+type;
+
+ el.innerHTML=
+ `<div class="bubble">
+ ${escapeHTML(content)}
+ ${meta
+ ?`<div class="meta">${escapeHTML(meta)}</div>`
+ :""}
+ </div>`;
+
+ chat.appendChild(el);
+
+ bottom();
+
+ return el;
+}
+
+function thinking(){
+
+ const el=document.createElement("div");
+
+ el.className="msg ai";
+
+ el.innerHTML=
+ `<div class="bubble">
+ <div class="typing">
+ <i></i><i></i><i></i>
+ </div>
+ </div>`;
+
+ chat.appendChild(el);
+
+ bottom();
+
+ return el;
+}
+
+/* HISTÓRICO VISUAL LOCAL */
+
+function history(){
+
+ return JSON.parse(
+  localStorage.getItem("gabineteChat")||
+  "[]"
+ );
+
+}
+
+function save(role,value){
+
+ const h=history();
+
+ h.push({
+  role,
+  text:value,
+  time:new Date().toISOString()
+ });
+
+ localStorage.setItem(
+  "gabineteChat",
+  JSON.stringify(
+   h.slice(-40)
+  )
+ );
+
+}
+
+/* RESPOSTAS RÁPIDAS */
+
+function quick(options){
+
+ document
+ .querySelectorAll(".quick")
+ .forEach(x=>x.remove());
+
+ const wrap=
+ document.createElement("div");
+
+ wrap.className="quick";
+
+ options.forEach(label=>{
+
+  const b=
+  document.createElement("button");
+
+  b.textContent=label;
+
+  b.onclick=()=>{
+   wrap.remove();
+
+   if(
+    label==="Prefiro falar" ||
+    label==="Quero contar"
+   ){
+    mic.click();
+   }else{
+    send(label);
+   }
+  };
+
+  wrap.appendChild(b);
+
+ });
+
+ chat.appendChild(wrap);
+
+ bottom();
+
+}
+
+/* MISSÃO VISUAL */
+
+function mission(textValue){
+
+ const box=
+ document.createElement("div");
+
+ box.className="mission";
+
+ box.innerHTML=
+ `<div class="mission-title">
+ PRÓXIMA AÇÃO
+ </div>
+
+ <div class="mission-text">
+ ${escapeHTML(textValue)}
+ </div>
+
+ <div class="mission-actions">
+
+ <button class="do">
+ Vou fazer
+ </button>
+
+ <button class="cant">
+ Não consigo agora
+ </button>
+
+ </div>`;
+
+ box.querySelector(".do").onclick=()=>{
+  box.remove();
+  send(
+   "Vou fazer essa ação agora."
+  );
+ };
+
+ box.querySelector(".cant").onclick=()=>{
+  box.remove();
+  send(
+   "Não consigo fazer essa ação agora."
+  );
+ };
+
+ chat.appendChild(box);
+
+ bottom();
+
+}
+
+function maybeMission(reply){
+
+ const t=reply.toLowerCase();
+
+ if(
+  t.includes("missão") ||
+  t.includes("faça agora") ||
+  t.includes("próxima ação")
+ ){
+
+  const parts=
+  reply.split("\n");
+
+  const candidate=
+  parts.find(x=>
+   x.trim().length>10 &&
+   (
+    /faça/i.test(x) ||
+    /coloque/i.test(x) ||
+    /separe/i.test(x) ||
+    /comece/i.test(x) ||
+    /pegue/i.test(x) ||
+    /abra/i.test(x)
+   )
+  );
+
+  if(candidate){
+   mission(candidate.trim());
+  }
+
+ }
+
+}
+
+/* ENVIA TEXTO */
+
+async function send(value){
+
+ value=(value||"").trim();
+
+ if(!value)return;
+
+ document
+ .querySelectorAll(".quick")
+ .forEach(x=>x.remove());
+
+ message(
+  "user",
+  value,
+  "Você"
+ );
+
+ save(
+  "user",
+  value
+ );
+
+ text.value="";
+
+ const wait=thinking();
+
+ try{
+
+  const r=
+  await fetch(
+   API,
+   {
+    method:"POST",
+
+    headers:{
+     "Content-Type":
+     "application/json"
+    },
+
+    body:
+    JSON.stringify({
+     text:value,
+     energy:S.energy,
+     context:"conversa no Gabinete"
+    })
+   }
+  );
+
+  const data=
+  await r.json();
+
+  wait.remove();
+
+  if(
+   !r.ok ||
+   !data.reply
+  ){
+   throw new Error(
+    data.error||"erro"
+   );
+  }
+
+  message(
+   "ai",
+   data.reply,
+   "Gabinete"
+  );
+
+  save(
+   "assistant",
+   data.reply
+  );
+
+  maybeMission(
+   data.reply
+  );
+
+ }catch(e){
+
+  wait.remove();
+
+  message(
+   "ai",
+   "Não consegui acessar o sistema agora. Sua mensagem continua aqui no aparelho."
+  );
+
+ }
+
+}
+
+/* CAMPO TEXTO */
+
+document
+.getElementById("sendBtn")
+.onclick=()=>{
+ send(text.value);
+};
+
+text.addEventListener(
+ "input",
+ ()=>{
+
+  text.style.height="auto";
+
+  text.style.height=
+  Math.min(
+   text.scrollHeight,
+   110
+  )+"px";
+
+ }
+);
+
+text.addEventListener(
+ "keydown",
+ e=>{
+
+  if(
+   e.key==="Enter" &&
+   !e.shiftKey
+  ){
+
+   e.preventDefault();
+
+   send(
+    text.value
+   );
+
+  }
+
+ }
+);
+
+/* ENERGIA */
+
+const energyNames={
+ baixa:"🔋 Energia baixa",
+ media:"⚡ Energia média",
+ boa:"✨ Energia boa"
+};
+
+const energyBtn=
+document.getElementById("energyBtn");
+
+energyBtn.textContent=
+energyNames[S.energy];
+
+energyBtn.onclick=()=>{
+
+ document
+ .getElementById("energyMenu")
+ .classList
+ .toggle("show");
+
+};
+
+document
+.querySelectorAll("[data-energy]")
+.forEach(b=>{
+
+ if(
+  b.dataset.energy===
+  S.energy
+ ){
+  b.classList.add("active");
+ }
+
+ b.onclick=()=>{
+
+  S.energy=
+  b.dataset.energy;
+
+  localStorage.setItem(
+   "gabineteEnergy",
+   S.energy
+  );
+
+  document
+  .querySelectorAll("[data-energy]")
+  .forEach(x=>
+   x.classList.remove("active")
+  );
+
+  b.classList.add("active");
+
+  energyBtn.textContent=
+  energyNames[S.energy];
+
+  document
+  .getElementById("energyMenu")
+  .classList
+  .remove("show");
+
+ };
+
+});
+
+/* TIMER */
+
+function startTimer(){
+
+ S.seconds=0;
+
+ timer.textContent="00:00";
+
+ S.timer=
+ setInterval(()=>{
+
+  S.seconds++;
+
+  const m=
+  String(
+   Math.floor(
+    S.seconds/60
+   )
+  ).padStart(2,"0");
+
+  const s=
+  String(
+   S.seconds%60
+  ).padStart(2,"0");
+
+  timer.textContent=
+  `${m}:${s}`;
+
+ },1000);
+
+}
+
+function stopTimer(){
+ clearInterval(S.timer);
+}
+
+/* ONDA REAL DO MICROFONE */
+
+function drawWave(){
+
+ const ctx=
+ canvas.getContext("2d");
+
+ const ratio=
+ devicePixelRatio||1;
+
+ canvas.width=
+ canvas.clientWidth*ratio;
+
+ canvas.height=
+ canvas.clientHeight*ratio;
+
+ ctx.scale(
+  ratio,
+  ratio
+ );
+
+ const W=
+ canvas.clientWidth;
+
+ const H=
+ canvas.clientHeight;
+
+ const data=
+ new Uint8Array(
+  S.analyser.fftSize
+ );
+
+ function draw(){
+
+  S.animation=
+  requestAnimationFrame(draw);
+
+  S.analyser
+  .getByteTimeDomainData(data);
+
+  ctx.clearRect(
+   0,0,W,H
+  );
+
+  ctx.beginPath();
+
+  ctx.strokeStyle=
+  "#2878ee";
+
+  ctx.lineWidth=2;
+
+  const step=
+  W/(data.length-1);
+
+  let x=0;
+
+  for(
+   let i=0;
+   i<data.length;
+   i++
+  ){
+
+   const value=
+   data[i]/128;
+
+   const y=
+   value*(H/2);
+
+   if(i===0){
+    ctx.moveTo(x,y);
+   }else{
+    ctx.lineTo(x,y);
+   }
+
+   x+=step;
+
+  }
+
+  ctx.stroke();
+
+ }
+
+ draw();
+
+}
+
+function stopWave(){
+
+ if(S.animation){
+  cancelAnimationFrame(
+   S.animation
+  );
+ }
+
+ if(S.audio){
+  S.audio.close()
+  .catch(()=>{});
+ }
+
+ S.animation=null;
+ S.audio=null;
+
+}
+
+/* MICROFONE */
+
+mic.onclick=
+async()=>{
+
+ if(
+  S.recorder &&
+  S.recorder.state===
+  "recording"
+ ){
+
+  S.recorder.stop();
+
+  return;
+
+ }
+
+ try{
+
+  S.stream=
+  await navigator
+  .mediaDevices
+  .getUserMedia({
+   audio:true
+  });
+
+  S.chunks=[];
+
+  S.audio=
+  new (
+   window.AudioContext||
+   window.webkitAudioContext
+  )();
+
+  S.analyser=
+  S.audio
+  .createAnalyser();
+
+  S.analyser.fftSize=
+  1024;
+
+  S.audio
+  .createMediaStreamSource(
+   S.stream
+  )
+  .connect(
+   S.analyser
+  );
+
+  drawWave();
+
+  const options=
+  MediaRecorder
+  .isTypeSupported(
+   "audio/webm;codecs=opus"
+  )
+  ?
+  {
+   mimeType:
+   "audio/webm;codecs=opus"
+  }
+  :
+  {};
+
+  S.recorder=
+  new MediaRecorder(
+   S.stream,
+   options
+  );
+
+  S.recorder
+  .ondataavailable=
+  e=>{
+
+   if(e.data.size){
+    S.chunks.push(
+     e.data
+    );
+   }
+
+  };
+
+  S.recorder
+  .onstop=
+  async()=>{
+
+   stopTimer();
+   stopWave();
+
+   recording
+   .classList
+   .remove("show");
+
+   mic
+   .classList
+   .remove("active");
+
+   mic.textContent=
+   "🎙️";
+
+   S.stream
+   .getTracks()
+   .forEach(t=>t.stop());
+
+   hint.textContent=
+   "Transcrevendo o que você disse…";
+
+   const wait=
+   thinking();
+
+   try{
+
+    const blob=
+    new Blob(
+     S.chunks,
+     {
+      type:
+      S.recorder.mimeType||
+      "audio/webm"
+     }
+    );
+
+    const form=
+    new FormData();
+
+    form.append(
+     "audio",
+     blob,
+     "audio.webm"
+    );
+
+    form.append(
+     "energy",
+     S.energy
+    );
+
+    form.append(
+     "context",
+     "conversa por voz"
+    );
+
+    const r=
+    await fetch(
+     API,
+     {
+      method:"POST",
+      body:form
+     }
+    );
+
+    const data=
+    await r.json();
+
+    wait.remove();
+
+    if(
+     !r.ok ||
+     !data.reply
+    ){
+     throw new Error(
+      data.error||"erro"
+     );
+    }
+
+    const spoken=
+    data.transcription||
+    "(transcrição indisponível)";
+
+    /* SUA FALA APARECE PRIMEIRO */
+
+    message(
+     "user",
+     spoken,
+     "Transcrição da sua fala"
+    );
+
+    save(
+     "user",
+     spoken
+    );
+
+    hint.textContent=
+    "✓ Entendi sua fala.";
+
+    /* DEPOIS A RESPOSTA */
+
+    const think=
+    thinking();
+
+    setTimeout(()=>{
+
+     think.remove();
+
+     message(
+      "ai",
+      data.reply,
+      "Gabinete"
+     );
+
+     save(
+      "assistant",
+      data.reply
+     );
+
+     maybeMission(
+      data.reply
+     );
+
+    },250);
+
+   }catch(e){
+
+    wait.remove();
+
+    message(
+     "ai",
+     "Não consegui processar esse áudio. Tente novamente."
+    );
+
+    hint.textContent=
+    "Falha ao processar o áudio.";
+
+   }
+
+  };
+
+  S.recorder.start();
+
+  recording
+  .classList
+  .add("show");
+
+  mic
+  .classList
+  .add("active");
+
+  mic.textContent=
+  "■";
+
+  hint.textContent=
+  "Estou ouvindo…";
+
+  startTimer();
+
+ }catch(e){
+
+  hint.textContent=
+  "Não consegui acessar o microfone. Verifique a permissão.";
+
+ }
+
+};
+
+/* INICIATIVA DO GABINETE */
+
+async function proactiveOpen(){
+
+ const h=history();
+
+ /* restaura conversa recente */
+
+ if(h.length){
+
+  chat.innerHTML=
+  '<div class="day">Conversa recente</div>';
+
+  h.slice(-18)
+  .forEach(x=>{
+
+   message(
+    x.role==="user"
+    ?"user"
+    :"ai",
+
+    x.text,
+
+    x.role==="user"
+    ?"Você"
+    :"Gabinete"
+   );
+
+  });
+
+ }
+
+ const wait=
+ thinking();
+
+ try{
+
+  const r=
+  await fetch(
+   API,
+   {
+    method:"POST",
+
+    headers:{
+     "Content-Type":
+     "application/json"
+    },
+
+    body:
+    JSON.stringify({
+
+     energy:S.energy,
+
+     context:
+     "abertura ativa de uma nova sessão",
+
+     text:
+     `[EVENTO INTERNO]
+A pessoa acabou de abrir o Gabinete.
+
+Não trate isso como uma mensagem literal da pessoa.
+Use o que você já sabe na memória.
+
+Inicie a conversa de forma natural e útil.
+
+Se ainda conhece pouco a pessoa, priorize entender como ela está se sentindo agora e, gradualmente, o que mais importa na vida dela.
+
+Se já conhece bem a pessoa, não repita perguntas básicas desnecessariamente. Considere estado atual, metas, pendências, padrões e o que pode ter mudado desde a última interação.
+
+Faça no máximo uma pergunta principal.
+
+Se a energia estiver baixa, seja especialmente breve.
+
+Não mencione este evento interno.`
+    })
+   }
+  );
+
+  const data=
+  await r.json();
+
+  wait.remove();
+
+  if(
+   r.ok &&
+   data.reply
+  ){
+
+   message(
+    "ai",
+    data.reply,
+    "Gabinete"
+   );
+
+   save(
+    "assistant",
+    data.reply
+   );
+
+  }else{
+   throw new Error();
+  }
+
+ }catch(e){
+
+  wait.remove();
+
+  if(!h.length){
+
+   message(
+    "ai",
+    "Como você está se sentindo agora? Pode falar do seu jeito — eu vou conhecendo você aos poucos.",
+    "Gabinete"
+   );
+
+   quick([
+    "Estou bem",
+    "Mais ou menos",
+    "Estou mal",
+    "Prefiro falar"
+   ]);
+
+  }
+
+ }
+
+}
+
+/* INÍCIO */
+
+proactiveOpen();
+
+</script>
+
+</body>
+  </html>
