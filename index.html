@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#6d5dfc" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Sistema — Check-in Inteligente</title>
+  <style>
+    :root{
+      --bg:#0f1020;--card:#181a31;--card2:#222543;--text:#f7f7fb;--muted:#aeb3cc;
+      --accent:#8b7cff;--accent2:#ff8fb1;--ok:#5ee0b6;--warn:#ffd36f;--danger:#ff7f8e;
+      --shadow:0 18px 55px rgba(0,0,0,.28);--r:24px
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:
+      radial-gradient(circle at 15% 5%,#332a70 0,transparent 28%),
+      radial-gradient(circle at 95% 10%,#5e2948 0,transparent 25%),
+      var(--bg);color:var(--text);min-height:100vh}
+    button,input,textarea{font:inherit}
+    .app{max-width:760px;margin:auto;padding:18px 16px 110px}
+    .top{display:flex;align-items:center;justify-content:space-between;margin:8px 2px 18px}
+    .brand{font-weight:800;letter-spacing:-.03em;font-size:21px}
+    .chip{background:#ffffff12;border:1px solid #ffffff16;color:var(--muted);padding:8px 12px;border-radius:999px;font-size:12px}
+    .hero{background:linear-gradient(135deg,#7566ff,#aa5ee9 55%,#ef78ac);border-radius:30px;padding:24px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+    .hero:after{content:"";position:absolute;width:160px;height:160px;border-radius:50%;background:#fff2;right:-45px;top:-55px}
+    .hero h1{font-size:30px;line-height:1.05;margin:0 0 8px;max-width:520px;letter-spacing:-.04em}
+    .hero p{margin:0;color:#f3efff;max-width:560px;line-height:1.4}
+    .section{margin-top:18px}
+    .section h2{font-size:16px;margin:0 0 10px;color:#e8e9f5}
+    .card{background:linear-gradient(180deg,#1a1d36,#15172c);border:1px solid #ffffff10;border-radius:var(--r);padding:16px;box-shadow:0 10px 30px #0002}
+    .energy{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .energy button,.choice,.primary,.secondary,.mic{border:0;border-radius:18px;padding:14px;cursor:pointer;transition:.18s transform,.18s background}
+    button:active{transform:scale(.98)}
+    .energy button{background:var(--card2);color:var(--text);border:1px solid #ffffff0e}
+    .energy button.active{background:linear-gradient(135deg,var(--accent),#b86cff)}
+    .label{font-size:12px;color:var(--muted);display:block;margin-top:4px}
+    .choices{display:flex;flex-wrap:wrap;gap:8px}
+    .choice{background:#222541;color:#dfe2f5;border:1px solid #ffffff10;padding:10px 12px}
+    .choice.active{background:#383d6a;border-color:#8b7cff}
+    textarea{width:100%;min-height:90px;background:#101226;border:1px solid #ffffff12;color:var(--text);border-radius:18px;padding:14px;resize:vertical;outline:none}
+    textarea:focus{border-color:var(--accent)}
+    .row{display:flex;gap:10px;align-items:center}
+    .primary{background:linear-gradient(135deg,var(--accent),#c064e8);color:white;font-weight:750;flex:1}
+    .secondary{background:#242742;color:#e7e8f4}
+    .mic{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#ff719f,#ff9f76);color:white;font-size:24px;box-shadow:0 10px 25px #ff789644}
+    .mic.recording{animation:pulse 1s infinite}
+    @keyframes pulse{50%{box-shadow:0 0 0 12px #ff789622}}
+    .status{font-size:13px;color:var(--muted);margin-top:8px}
+    .insight{border-left:4px solid var(--ok);padding-left:12px;line-height:1.45}
+    .hidden{display:none}
+    .timeline{display:grid;gap:10px}
+    .entry{background:#121428;border-radius:16px;padding:12px;border:1px solid #ffffff0b}
+    .entry .time{font-size:11px;color:var(--muted);margin-bottom:6px}
+    .nav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:min(720px,calc(100% - 24px));background:#17192eeF;border:1px solid #ffffff12;backdrop-filter:blur(16px);border-radius:22px;padding:8px;display:grid;grid-template-columns:repeat(3,1fr);box-shadow:var(--shadow)}
+    .nav button{background:transparent;border:0;color:var(--muted);padding:10px;border-radius:16px}
+    .nav button.active{background:#ffffff0d;color:white}
+    .tiny{font-size:11px;color:var(--muted);line-height:1.35}
+    .badge{display:inline-block;background:#5ee0b61a;color:#7beac7;border:1px solid #5ee0b633;border-radius:999px;padding:5px 9px;font-size:11px;margin-bottom:8px}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="top">
+      <div class="brand">Sistema</div>
+      <div class="chip" id="onlineChip">verificando conexão…</div>
+    </div>
+
+    <section class="hero">
+      <div class="badge">check-in adaptativo</div>
+      <h1>Como está sua energia agora?</h1>
+      <p>Escolha rápido. O sistema reduz ou aprofunda as perguntas conforme sua energia.</p>
+    </section>
+
+    <section class="section card">
+      <h2>Energia atual</h2>
+      <div class="energy">
+        <button data-energy="baixa">🔋<strong> Baixa</strong><span class="label">quero pouco esforço</span></button>
+        <button data-energy="media">⚡<strong> Média</strong><span class="label">consigo responder</span></button>
+        <button data-energy="boa">✨<strong> Boa</strong><span class="label">pode aprofundar</span></button>
+      </div>
+    </section>
+
+    <section class="section card">
+      <h2>O que está acontecendo?</h2>
+      <div class="choices" id="choices">
+        <button class="choice">Estou evitando algo</button>
+        <button class="choice">Quero tomar uma decisão</button>
+        <button class="choice">Estou cansada</button>
+        <button class="choice">Quero registrar algo</button>
+        <button class="choice">Preciso me organizar</button>
+        <button class="choice">Outra coisa</button>
+      </div>
+      <div style="height:10px"></div>
+      <textarea id="note" placeholder="Pode escrever pouco. Ou use o microfone e fale do seu jeito."></textarea>
+      <div style="height:12px"></div>
+      <div class="row">
+        <button class="mic" id="micBtn" title="Gravar áudio">🎙️</button>
+        <button class="primary" id="saveBtn">Registrar agora</button>
+      </div>
+      <div class="status" id="recordStatus">O áudio pode ser salvo no aparelho mesmo sem internet.</div>
+    </section>
+
+    <section class="section card hidden" id="resultCard">
+      <h2>Resposta do sistema</h2>
+      <div class="insight" id="insight"></div>
+      <div style="height:12px"></div>
+      <button class="secondary" id="futureBtn">Como vou me sentir depois?</button>
+    </section>
+
+    <section class="section card">
+      <h2>Registros recentes</h2>
+      <div class="timeline" id="timeline"></div>
+      <div class="tiny" style="margin-top:10px">Nesta versão de teste, tudo fica salvo localmente no navegador. A conexão com IA real entra na próxima etapa.</div>
+    </section>
+  </main>
+
+  <nav class="nav">
+    <button class="active">Hoje</button>
+    <button onclick="alert('Painel entra na próxima versão.')">Painel</button>
+    <button onclick="alert('Perfil adaptativo entra na próxima versão.')">Perfil</button>
+  </nav>
+
+<script>
+const state={energy:null,selected:null,mediaRecorder:null,chunks:[],db:null};
+
+function updateOnline(){
+  const c=document.getElementById('onlineChip');
+  const on=navigator.onLine;
+  c.textContent=on?'● online':'● offline — salvando local';
+  c.style.color=on?'#78e7c7':'#ffd36f';
+}
+addEventListener('online',updateOnline); addEventListener('offline',updateOnline); updateOnline();
+
+document.querySelectorAll('[data-energy]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-energy]').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); state.energy=b.dataset.energy;
+});
+
+document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.choice').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); state.selected=b.textContent.trim();
+});
+
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open('sistema-db',1);
+    req.onupgradeneeded=()=>req.result.createObjectStore('audio',{keyPath:'id'});
+    req.onsuccess=()=>resolve(req.result); req.onerror=()=>reject(req.error);
+  });
+}
+openDB().then(db=>state.db=db);
+
+async function saveAudio(blob){
+  if(!state.db) state.db=await openDB();
+  const tx=state.db.transaction('audio','readwrite');
+  tx.objectStore('audio').put({id:Date.now(),blob,createdAt:new Date().toISOString(),synced:false});
+}
+
+document.getElementById('micBtn').onclick=async()=>{
+  const btn=document.getElementById('micBtn'), status=document.getElementById('recordStatus');
+  if(state.mediaRecorder && state.mediaRecorder.state==='recording'){ state.mediaRecorder.stop(); return; }
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    state.chunks=[];
+    state.mediaRecorder=new MediaRecorder(stream);
+    state.mediaRecorder.ondataavailable=e=>state.chunks.push(e.data);
+    state.mediaRecorder.onstop=async()=>{
+      const blob=new Blob(state.chunks,{type:state.mediaRecorder.mimeType||'audio/webm'});
+      await saveAudio(blob);
+      stream.getTracks().forEach(t=>t.stop());
+      btn.classList.remove('recording'); btn.textContent='🎙️';
+      status.textContent=navigator.onLine?'Áudio salvo. Pronto para análise quando a IA estiver conectada.':'Áudio salvo no aparelho. Será analisado quando houver conexão.';
+      addEntry('🎙️ Áudio registrado');
+    };
+    state.mediaRecorder.start(); btn.classList.add('recording'); btn.textContent='⏹️';
+    status.textContent='Gravando… toque novamente para parar.';
+  }catch(e){
+    status.textContent='Não consegui acessar o microfone. Verifique a permissão do navegador.';
+  }
+};
+
+function saveTextEntry(text){
+  const list=JSON.parse(localStorage.getItem('entries')||'[]');
+  list.unshift({id:Date.now(),text,energy:state.energy||'não informada',type:state.selected||'registro livre',time:new Date().toLocaleString('pt-BR')});
+  localStorage.setItem('entries',JSON.stringify(list.slice(0,30)));
+}
+function addEntry(label){
+  const list=JSON.parse(localStorage.getItem('entries')||'[]');
+  list.unshift({id:Date.now(),text:label,energy:state.energy||'não informada',type:state.selected||'registro',time:new Date().toLocaleString('pt-BR')});
+  localStorage.setItem('entries',JSON.stringify(list.slice(0,30))); renderTimeline();
+}
+function renderTimeline(){
+  const root=document.getElementById('timeline');
+  const list=JSON.parse(localStorage.getItem('entries')||'[]').slice(0,6);
+  root.innerHTML=list.length?list.map(e=>`<div class="entry"><div class="time">${e.time} · energia ${e.energy}</div><strong>${e.type}</strong><div>${escapeHtml(e.text)}</div></div>`).join(''):'<div class="tiny">Nenhum registro ainda.</div>';
+}
+function escapeHtml(s){return (s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+
+document.getElementById('saveBtn').onclick=()=>{
+  const text=document.getElementById('note').value.trim();
+  if(!state.energy){alert('Escolha sua energia primeiro.');return}
+  if(!text && !state.selected){alert('Escreva, fale ou escolha o que está acontecendo.');return}
+  saveTextEntry(text||state.selected); renderTimeline();
+  const low=state.energy==='baixa';
+  const msg=low
+    ? 'Entendi. Vou manter isso simples: escolha só a próxima ação pequena que diminui o problema.'
+    : state.energy==='media'
+    ? 'Registro feito. Antes da próxima ação, vale checar: o que está travando, qual é a menor ação possível e como você provavelmente vai se sentir depois?'
+    : 'Registro feito. Com sua energia atual, dá para explorar causa, fricção e consequência sem transformar isso em uma tarefa pesada.';
+  document.getElementById('insight').textContent=msg;
+  const resultCard=document.getElementById('resultCard');
+  resultCard.classList.remove('hidden');
+
+  // Confirmação visual imediata
+  const saveBtn=document.getElementById('saveBtn');
+  const originalText=saveBtn.textContent;
+  saveBtn.textContent='✓ Registrado!';
+  saveBtn.style.background='linear-gradient(135deg,#38c99a,#5ee0b6)';
+  saveBtn.disabled=true;
+
+  // Leva a pessoa diretamente até a resposta
+  setTimeout(()=>{
+    resultCard.scrollIntoView({behavior:'smooth',block:'center'});
+  },180);
+
+  // Depois volta ao estado normal para permitir novo registro
+  setTimeout(()=>{
+    saveBtn.textContent=originalText;
+    saveBtn.style.background='';
+    saveBtn.disabled=false;
+  },2200);
+};
+
+document.getElementById('futureBtn').onclick=()=>{
+  document.getElementById('insight').textContent='Compare duas cenas: se eu fizer isso, como provavelmente vou me sentir depois? E se eu não fizer, como provavelmente vou me sentir? Escolha a consequência que você prefere carregar.';
+};
+
+renderTimeline();
+
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./service-worker.js').catch(()=>{})}
+</script>
+</body>
+</html>
